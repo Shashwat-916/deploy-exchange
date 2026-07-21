@@ -3,7 +3,7 @@
 export default function Home() {
   return(
     <div>
-      Leetcode Landing Page 
+      Exchange Landing Page 
     </div>
   )
 }
