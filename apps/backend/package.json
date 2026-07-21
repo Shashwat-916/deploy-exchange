@@ -11,7 +11,7 @@
   },
   "devDependencies": {
     "@repo/prisma-db": "*",
-    "@repo/redis-client":"*",
+    "@repo/redis-client": "*",
     "@types/bun": "latest",
     "@types/express": "^5.0.6"
   },

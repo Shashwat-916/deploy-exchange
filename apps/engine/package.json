@@ -1,5 +1,5 @@
 {
-  "name": "workers",
+  "name": "engine",
   "module": "src/index.ts",
   "type": "module",
   "private": true,
@@ -11,14 +11,13 @@
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "@types/express": "^5.0.6"
+    "@types/ws": "^8.18.1"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
-    "express": "^5.2.1",
-    "@repo/prisma-db": "*",
+    "ws": "^8.21.1",
     "@repo/redis-client":"*"
   }
 }

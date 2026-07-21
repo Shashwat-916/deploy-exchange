@@ -2,7 +2,10 @@
   "extends": "../../packages/typescript-config/base.json",
   "compilerOptions": {
     "rootDir": "./src",
-    "outDir": "dist"
+    "outDir": "dist",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "noUncheckedIndexedAccess": false
   },
   "include": ["src"]
 }
