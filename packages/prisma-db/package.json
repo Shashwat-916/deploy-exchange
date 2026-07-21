@@ -1,0 +1,41 @@
+{
+  "name": "@repo/prisma-db",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./lib/prisma.ts"
+  },
+  "scripts": {
+    "generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate:dev": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:migrate:reset": "prisma migrate reset",
+    "db:seed": "tsx prisma/seed.ts",
+    "studio": "prisma studio",
+    "format": "prisma format",
+    "validate": "prisma validate",
+    "predev": "npm run generate",
+    "prebuild": "npm run generate",
+    "dev": "bun run --watch ./lib/prisma.ts",
+    "start": "bun ./lib/prisma.ts",
+    "build": "bun ./lib/prisma.ts ",
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "*",
+    "@types/bun": "latest",
+    "@types/pg": "^8.20.0",
+    "prisma": "^7.9.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.9.0",
+    "@prisma/client": "^7.9.0",
+    "dotenv": "^17.4.2",
+    "pg": "^8.22.0"
+  }
+}

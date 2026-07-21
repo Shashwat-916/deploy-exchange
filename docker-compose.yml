@@ -1,0 +1,58 @@
+version: '3.9'
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=leetcode
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    image: leetcode-backend
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/leetcode?schema=public
+    depends_on:
+      - redis
+      - postgres
+
+  workers:
+    image: leetcode-workers
+    build:
+      context: .
+      dockerfile: apps/workers/Dockerfile
+    ports:
+      - "3002:3002"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/leetcode?schema=public
+    depends_on:
+      - redis
+      - postgres
+
+  frontend:
+    image: leetcode-frontend
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+    ports:
+      - "3000:3000"
+
+volumes:
+  postgres_data:
