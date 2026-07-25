@@ -1,10 +1,5 @@
+import LandingPageComponent from "@/components/LandingPage";
 
-
-export default function Home() {
-  return(
-    <div>
-      Exchange Landing Page 
-    </div>
-  )
+export default function LandingPage() {
+  return <LandingPageComponent />;
 }
-  
