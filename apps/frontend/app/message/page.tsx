@@ -2,27 +2,39 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { MessageSquare, ArrowLeft, Send } from "lucide-react";
+import { MessageSquare, KeyRound, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { 
+  InputOTP, 
+  InputOTPGroup, 
+  InputOTPSlot, 
+  InputOTPSeparator 
+} from "@/components/ui/input-otp";
 
 export default function MessageVerificationPage() {
-  const [code, setCode] = useState(["", "", "", "", "", ""]);
+  const [step, setStep] = useState<1 | 2 | 3>(1); // 1: Phone Input, 2: OTP Input, 3: Success
+  const [phone, setPhone] = useState("");
+  const [otpValue, setOtpValue] = useState("");
 
-  const handleChange = (element: HTMLInputElement, index: number) => {
-    if (isNaN(Number(element.value))) return false;
+  const handleSendOtp = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (phone.trim() && phone.length >= 7) {
+      setStep(2);
+    }
+  };
 
-    setCode([...code.map((d, idx) => (idx === index ? element.value : d))]);
-
-    // Focus next input
-    if (element.nextSibling && element.value !== "") {
-      (element.nextSibling as HTMLInputElement).focus();
+  const handleVerify = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (otpValue.length === 6) {
+      setStep(3);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0d12] text-zinc-200 font-sans selection:bg-[#E33E3F]/30 flex flex-col justify-between">
+    <div className="min-h-screen  bg-[#0b0d12] text-zinc-200 font-sans selection:bg-[#E33E3F]/30 flex flex-col justify-between">
       {/* Header */}
-      <header className="h-16 w-full bg-[#0b0d12]/90 backdrop-blur-md flex items-center justify-between px-6">
+      <header className="h-16 w-full bg-[#0b0d12]/90 backdrop-blur-md flex items-center justify-between px-6 border-none">
         <Link href="/" className="flex items-center gap-2.5">
           <img
             src="/backpack-logo.jpg"
@@ -37,47 +49,116 @@ export default function MessageVerificationPage() {
 
       {/* Main Content */}
       <main className="flex-1 flex items-center justify-center px-6 py-12">
-        <div className="max-w-md w-full rounded-2xl border border-zinc-800/80 bg-zinc-900/30 backdrop-blur-md p-8 flex flex-col items-center gap-6 text-center">
-          {/* Icon wrapper */}
-          <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-[#E33E3F]/10 to-[#f46869]/10 border border-[#E33E3F]/20 flex items-center justify-center text-[#E33E3F] shadow-lg">
-            <MessageSquare className="w-9 h-9 animate-bounce" />
-          </div>
+        <div className="max-w-md w-full rounded-2xl border border-zinc-800/80 bg-[#14151B] backdrop-blur-md p-8 flex flex-col gap-6 relative overflow-hidden shadow-2xl">
+          {/* Subtle Glow Ring */}
+          <div className="absolute -right-16 -top-16 w-32 h-32 bg-[#E33E3F]/5 rounded-full blur-3xl pointer-events-none" />
 
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-white tracking-tight">Enter verification code</h2>
-            <p className="text-sm text-zinc-400 leading-relaxed">
-              We've sent a 6-digit confirmation code via SMS. Please enter it below to complete verification.
-            </p>
-          </div>
+          {step === 1 && (
+            <form onSubmit={handleSendOtp} className="space-y-6">
+              <div className="flex flex-col items-center gap-4 text-center">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#E33E3F]/10 to-[#f46869]/10 border border-[#E33E3F]/20 flex items-center justify-center text-[#E33E3F] shadow-lg">
+                  <MessageSquare className="w-7 h-7" />
+                </div>
+                <div className="space-y-1.5">
+                  <h2 className="text-2xl font-bold text-white tracking-tight">SMS Verification</h2>
+                  <p className="text-xs text-zinc-400 max-w-[280px] leading-relaxed">
+                    Enter your phone number to receive a 6-digit confirmation code.
+                  </p>
+                </div>
+              </div>
 
-          {/* Verification Code Box Elements */}
-          <div className="flex gap-2.5 justify-center py-2">
-            {code.map((data, index) => {
-              return (
-                <input
-                  className="w-12 h-12 text-center bg-[#14161b]/80 border border-zinc-800 rounded-xl text-lg text-white font-bold focus:outline-none focus:border-[#E33E3F] focus:ring-1 focus:ring-[#E33E3F] transition-all duration-200"
-                  type="text"
-                  name="code"
-                  maxLength={1}
-                  key={index}
-                  value={data}
-                  onChange={(e) => handleChange(e.target, index)}
-                  onFocus={(e) => e.target.select()}
-                />
-              );
-            })}
-          </div>
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Phone Number</label>
+                <div className="flex gap-2.5">
+                  <div className="w-16 h-11 flex items-center justify-center rounded-xl bg-zinc-950 border border-zinc-800 text-zinc-400 text-sm font-semibold select-none">
+                    +1
+                  </div>
+                  <Input
+                    type="tel"
+                    required
+                    placeholder="(555) 555-5555"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="flex-1 h-11 px-4 rounded-xl bg-zinc-950/50 border border-zinc-800 text-white placeholder-zinc-700 focus-visible:border-[#E33E3F] focus-visible:ring-3 focus-visible:ring-[#E33E3F]/20 text-sm font-medium transition-all"
+                  />
+                </div>
+              </div>
 
-          <div className="w-full pt-4 border-t border-zinc-800/40 flex flex-col gap-3">
-            <Button className="w-full bg-[#E33E3F] hover:bg-[#E33E3F]/90 text-white font-semibold py-2.5 rounded-xl cursor-pointer flex items-center justify-center gap-2">
-              Confirm & Continue <Send className="w-4 h-4" />
-            </Button>
-            <Link href="/" className="w-full">
-              <Button variant="ghost" className="w-full text-zinc-400 hover:text-white cursor-pointer flex items-center justify-center gap-2">
-                <ArrowLeft className="w-4 h-4" /> Go Back
-              </Button>
-            </Link>
-          </div>
+              <div className="space-y-3">
+                <Button type="submit" className="w-full bg-[#E33E3F] hover:bg-[#E33E3F]/90 text-white font-semibold py-2.5 rounded-xl cursor-pointer shadow-lg shadow-red-500/10 transition duration-200">
+                  Send Code
+                </Button>
+              </div>
+            </form>
+          )}
+
+          {step === 2 && (
+            <form onSubmit={handleVerify} className="space-y-6">
+              <div className="flex flex-col items-center gap-4 text-center">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#E33E3F]/10 to-[#f46869]/10 border border-[#E33E3F]/20 flex items-center justify-center text-[#E33E3F] shadow-lg">
+                  <KeyRound className="w-7 h-7" />
+                </div>
+                <div className="space-y-1.5">
+                  <h2 className="text-2xl font-bold text-white tracking-tight">Enter Code</h2>
+                  <p className="text-xs text-zinc-400 max-w-[280px] leading-relaxed">
+                    We sent a confirmation code to <span className="text-white font-medium">+1 {phone}</span>.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-center">
+                <InputOTP
+                  maxLength={6}
+                  value={otpValue}
+                  onChange={(value) => setOtpValue(value)}
+                >
+                  <InputOTPGroup className="gap-2.5">
+                    <InputOTPSlot index={0} className="w-12 h-14 bg-zinc-950 border border-zinc-800 rounded-xl text-lg font-bold text-white transition-all data-[active=true]:border-[#E33E3F] data-[active=true]:ring-3 data-[active=true]:ring-[#E33E3F]/20 border-l" />
+                    <InputOTPSlot index={1} className="w-12 h-14 bg-zinc-950 border border-zinc-800 rounded-xl text-lg font-bold text-white transition-all data-[active=true]:border-[#E33E3F] data-[active=true]:ring-3 data-[active=true]:ring-[#E33E3F]/20 border-l" />
+                    <InputOTPSlot index={2} className="w-12 h-14 bg-zinc-950 border border-zinc-800 rounded-xl text-lg font-bold text-white transition-all data-[active=true]:border-[#E33E3F] data-[active=true]:ring-3 data-[active=true]:ring-[#E33E3F]/20 border-l" />
+                    <InputOTPSeparator className="text-zinc-600" />
+                    <InputOTPSlot index={3} className="w-12 h-14 bg-zinc-950 border border-zinc-800 rounded-xl text-lg font-bold text-white transition-all data-[active=true]:border-[#E33E3F] data-[active=true]:ring-3 data-[active=true]:ring-[#E33E3F]/20 border-l" />
+                    <InputOTPSlot index={4} className="w-12 h-14 bg-zinc-950 border border-zinc-800 rounded-xl text-lg font-bold text-white transition-all data-[active=true]:border-[#E33E3F] data-[active=true]:ring-3 data-[active=true]:ring-[#E33E3F]/20 border-l" />
+                    <InputOTPSlot index={5} className="w-12 h-14 bg-zinc-950 border border-zinc-800 rounded-xl text-lg font-bold text-white transition-all data-[active=true]:border-[#E33E3F] data-[active=true]:ring-3 data-[active=true]:ring-[#E33E3F]/20 border-l" />
+                  </InputOTPGroup>
+                </InputOTP>
+              </div>
+
+              <div className="space-y-3">
+                <Button type="submit" disabled={otpValue.length !== 6} className="w-full bg-[#E33E3F] hover:bg-[#E33E3F]/90 text-white disabled:opacity-50 disabled:cursor-not-allowed font-semibold py-2.5 rounded-xl cursor-pointer shadow-lg shadow-red-500/10 transition duration-200">
+                  Verify & Continue
+                </Button>
+                <div className="flex items-center justify-between text-xs px-1">
+                  <span className="text-zinc-500">Didn't receive code?</span>
+                  <button type="button" onClick={() => { setStep(1); setOtpValue(""); }} className="text-[#E33E3F] hover:underline font-semibold cursor-pointer">
+                    Resend SMS
+                  </button>
+                </div>
+              </div>
+            </form>
+          )}
+
+          {step === 3 && (
+            <div className="space-y-6 py-4">
+              <div className="flex flex-col items-center gap-4 text-center">
+                <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shadow-lg">
+                  <CheckCircle2 className="w-7 h-7" />
+                </div>
+                <div className="space-y-1.5">
+                  <h2 className="text-2xl font-bold text-white tracking-tight">Verified Successfully</h2>
+                  <p className="text-xs text-zinc-400 max-w-[280px] leading-relaxed">
+                    Your phone number has been authenticated. You can now access your dashboard.
+                  </p>
+                </div>
+              </div>
+
+              <Link href="/market" className="block">
+                <Button className="w-full bg-[#E33E3F] hover:bg-[#E33E3F]/90 text-white font-semibold py-2.5 rounded-xl cursor-pointer shadow-lg shadow-red-500/10 transition duration-200">
+                  Go to Markets
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
       </main>
 
