@@ -4,15 +4,86 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "./ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { fetchTickers, MarketTicker } from "@/actions/ticker";
-import { 
-  UsdtBanner, 
-  SolanaBanner, 
-  ListingBanner, 
+import { GetTickers } from "@/actions/ticker";
+import {
+  UsdtBanner,
+  SolanaBanner,
+  ListingBanner,
   ReferralBanner
 } from "./banner/Banners";
 
-// 1. BackPackImage Component (Using bp-token.svg)
+interface TickerResponse {
+  firstPrice: string;
+  high: string;
+  lastPrice: string;
+  low: string;
+  priceChange: string;
+  priceChangePercent: string;
+  quoteVolume: string;
+  symbol: string;
+  trades: string;
+  volume: string;
+}
+
+interface MarketTicker {
+  ticker: string;
+  name: string;
+  price: string;
+  change: string;
+  isPositive: boolean;
+  high: string;
+  low: string;
+  volume: string;
+  trades: string;
+}
+
+const SYMBOL_INFO: Record<string, { ticker: string; name: string }> = {
+  BTC_USDC: { ticker: "BTC", name: "Bitcoin" },
+  ETH_USDC: { ticker: "ETH", name: "Ethereum" },
+  SOL_USDC: { ticker: "SOL", name: "Solana" },
+};
+
+function formatPrice(value: number): string {
+  return value >= 1000
+    ? `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    : `$${value.toFixed(2)}`;
+}
+
+function toMarketTickers(raw: TickerResponse[]): MarketTicker[] {
+  const result: MarketTicker[] = [];
+  const order = ["BTC", "SOL", "ETH"];
+
+  for (const item of raw) {
+    const info = SYMBOL_INFO[item.symbol];
+    if (!info) continue;
+
+    const lastPrice = parseFloat(item.lastPrice) || 0;
+    const changePercent = (parseFloat(item.priceChangePercent) * 100) || 0;
+    const highPrice = parseFloat(item.high) || 0;
+    const lowPrice = parseFloat(item.low) || 0;
+    const vol = parseFloat(item.volume) || 0;
+    const tradesCount = parseInt(item.trades) || 0;
+
+    result.push({
+      ticker: info.ticker,
+      name: info.name,
+      price: formatPrice(lastPrice),
+      change: `${changePercent >= 0 ? "+" : ""}${changePercent.toFixed(2)}%`,
+      isPositive: changePercent >= 0,
+      high: formatPrice(highPrice),
+      low: formatPrice(lowPrice),
+      volume: vol >= 1000
+        ? vol.toLocaleString(undefined, { maximumFractionDigits: 2 })
+        : vol.toFixed(2),
+      trades: tradesCount.toLocaleString(),
+    });
+  }
+
+  result.sort((a, b) => order.indexOf(a.ticker) - order.indexOf(b.ticker));
+  return result;
+}
+
+
 function BackPackImage() {
   return (
     <div className="flex h-8 items-center justify-center gap-2.5">
@@ -69,7 +140,7 @@ function NavBar() {
 
 function PromoBanner() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  
+
   const banners = [
     <UsdtBanner key="usdt" />,
     <SolanaBanner key="solana" />,
@@ -94,7 +165,7 @@ function PromoBanner() {
   return (
     <div className="relative w-[85%] mx-auto h-54 bg-[#111318] rounded-2xl overflow-hidden border border-zinc-800/60 shadow-xl group/slider">
       {/* Slides wrapper */}
-      <div 
+      <div
         className="flex h-full w-full transition-transform duration-500 ease-in-out"
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
       >
@@ -106,7 +177,7 @@ function PromoBanner() {
       </div>
 
       {/* Left Navigation Arrow */}
-      <button 
+      <button
         onClick={handlePrev}
         className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2 text-zinc-400 hover:text-white bg-black/40 hover:bg-black/60 rounded-full border border-zinc-800 transition-all opacity-0 group-hover/slider:opacity-100 cursor-pointer shadow-md"
         aria-label="Previous banner"
@@ -115,7 +186,7 @@ function PromoBanner() {
       </button>
 
       {/* Right Navigation Arrow */}
-      <button 
+      <button
         onClick={handleNext}
         className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2 text-zinc-400 hover:text-white bg-black/40 hover:bg-black/60 rounded-full border border-zinc-800 transition-all opacity-0 group-hover/slider:opacity-100 cursor-pointer shadow-md"
         aria-label="Next banner"
@@ -129,9 +200,8 @@ function PromoBanner() {
           <button
             key={index}
             onClick={() => setCurrentIndex(index)}
-            className={`w-1.5 h-1.5 rounded-full transition-all cursor-pointer ${
-              currentIndex === index ? "bg-white w-3" : "bg-white/30 hover:bg-white/50"
-            }`}
+            className={`w-1.5 h-1.5 rounded-full transition-all cursor-pointer ${currentIndex === index ? "bg-white w-3" : "bg-white/30 hover:bg-white/50"
+              }`}
             aria-label={`Go to slide ${index + 1}`}
           />
         ))}
@@ -207,23 +277,23 @@ function AllMarket() {
 
   useEffect(() => {
     let active = true;
-    
+
     // Initial fetch
-    fetchTickers().then((data) => {
+    GetTickers().then((data: TickerResponse[]) => {
       if (active) {
-        setMarkets(data);
+        setMarkets(toMarketTickers(data));
       }
     });
-    
+
     // Poll updates every 10 seconds
     const interval = setInterval(() => {
-      fetchTickers().then((data) => {
+      GetTickers().then((data: TickerResponse[]) => {
         if (active) {
-          setMarkets(data);
+          setMarkets(toMarketTickers(data));
         }
       });
     }, 10000);
-    
+
     return () => {
       active = false;
       clearInterval(interval);
